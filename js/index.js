@@ -34,10 +34,13 @@ const showSearchResult = async function () {
       card.classList.add("card");
 
       const title = document.createElement("h2");
-      title.textContent = result.title;
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.innerHTML = result.title;
+      title.appendChild(link);
 
       const body = document.createElement("p");
-      body.textContent = result.contents;
+      body.innerHTML = result.contents;
 
       card.appendChild(title);
       card.appendChild(body);
