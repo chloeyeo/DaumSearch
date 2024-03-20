@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daum Web Search using Kakao API</title>
+    <title>Kakao Web Search</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
@@ -63,13 +63,17 @@
     const url = "https://dapi.kakao.com/v2/search/web";
     let itemsPerPage = 3;
     let currentPage = 1;
-    let inputQuery = $(".search-form").find("input[name=query]").val().trim();
-
+    let inputQuery;
+    //let inputQuery = $(".search-form").find("input[name=query]").val().trim();
+    //console.log(inputQuery);
+    // 글로벌로 저장하면 처음에 인풋쿼리가blank상태이고
+    // onSubmit에서 다시 지정하지 않기 때문에 아무것도 안나오는것임.
     async function onSubmit(event) {
       try {
         event.preventDefault();
+        inputQuery = $(".search-form").find("input[name=query]").val().trim();
         if (inputQuery) {
-          const response = await axios.get(url, getParams());
+          const response = await axios.get(url, getParams(inputQuery));
           onSuccess(response);
         } else {
           $(".input").focus();
@@ -79,7 +83,7 @@
       }
     }
 
-    function getParams() {
+    function getParams(inputQuery) {
       return {
         params: { query: inputQuery, size: itemsPerPage, page: currentPage },
         headers: {
