@@ -3,29 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daum Search With Kakao API Data</title>
-    <link rel="stylesheet" href="./css/index.css" />
-  </head>
-  <body>
-    <div class="display">
-        <div class="search">
-          <input type="text" placeholder="type here" value="" class="searchInput" />
-          <button class="btn">Search</button>
-        </div>
-        <div class="contentBox"></div>
-    <div>
-    <div class="paginationWrap">
-        <ul class="pagination">
-            <li class="prev"><a href="#">Previous</a></li>
-            <li class="next"><a href="#">Next</a></li>
-        </ul>
-    </div>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
-      integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
+    <title>Daum Web Search using Kakao API</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+      integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
-    ></script>
-    <script src="./js/index.js"></script>
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      ul,
+      li {
+        list-style: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form class="search-form d-flex gap-3 py-3">
+        <input
+          type="text"
+          placeholder="Please type what you want to search"
+          name="query"
+          class="input form-control"
+          value="blackpink"
+        />
+        <button class="btn btn-primary">Search</button>
+      </form>
+    </div>
+    <div class="container">
+      <ul class="lists"></ul>
+      <nav class="d-flex justify-content-center">
+        <ul class="pagination"></ul>
+      </nav>
+    </div>
   </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
+    integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+
+  <script>
+    const auth = "KakaoAK 78506c1bd0985343833cdcf21b8d7517";
+    const url = "https://dapi.kakao.com/v2/search/web";
+    let itemsPerPage = 3;
+    let currentPage = 8;
+    let inputQuery = $(".search-form").find("input[name=query]").val().trim();
+
+    async function onSubmit(event) {
+      try {
+        event.preventDefault();
+        if (inputQuery) {
+          const response = await axios.get(url, getParams());
+          onSuccess(response);
+        } else {
+          $(".input").focus();
+        }
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
+
+    function getParams() {
+      return {
+        params: { query: inputQuery, size: itemsPerPage, page: currentPage },
+        headers: {
+          Authorization: auth,
+        },
+      };
+    }
+    function setPager(totalRecords) {
+      let pagerCount = 5; // number of page indicators shown per page/group
+      // kakao api only shows up til 50 pages even when actual no. of pages is larger
+      let numberOfPages = Math.min(50, Math.ceil(totalRecords / itemsPerPage));
+      let startPage =
+        Math.floor((currentPage - 1) / pagerCount) * pagerCount + 1;
+      let endPage = startPage + pagerCount - 1;
+      console.log(
+        `numberOfPages: ${numberOfPages}, startPage: ${startPage}, endPage: ${endPage}`
+      );
+
+      let txt = `<li class="page-item ${
+        startPage == 1 ? "disabled" : ""
+      }" onclick=onPageClick(${startPage - 1})>
+            <span class="page-link"
+              ><i class="fa-solid fa-arrow-left"></i
+            ></span>
+          </li>`;
+      for (let i = startPage; i <= endPage; i++) {
+        txt += `<li class="page-item ${
+          currentPage == i ? "active" : ""
+        }" onclick=onPageClick(${i})><span class="page-link">${i}</span></li>`;
+      }
+      txt += `<li class="page-item ${
+        endPage == numberOfPages ? "disabled" : ""
+      }" onclick=onPageClick(${endPage + 1})>
+            <span class="page-link"
+              ><i class="fa-solid fa-arrow-right"></i
+            ></span>
+          </li>`;
+      $(".pagination").html(txt);
+    }
+    function onPageClick(pageNum) {
+      currentPage = Number(pageNum);
+      axios
+        .get(url, getParams())
+        .then(onSuccess)
+        .catch(function (error) {
+          console.error(error.message);
+        });
+    }
+
+    function onSuccess(response) {
+      let data = response.data.documents;
+      //   console.log(data);
+
+      setPager(response.data.meta.pageable_count); // pageable count in kakao api is equal to total items/docs/records
+
+      let text = ``;
+      for (item of data) {
+        text += `<li><h3><a href="${item.url}" target="_blank">${
+          item.title
+        }</a></h3><p>${item.contents}</p><p>${moment(item.datetime).format(
+          "YYYY-MM-DD HH:mm:ss"
+        )}</p></li>`;
+      }
+      $(".lists").html(text); // same as document.innerHTML
+    }
+    $(".search-form").submit(onSubmit);
+
+    // jquery.trigger is doing an action, e.g. actually making a button click action to happen without the user actually clicking
+    $(".btn").trigger("click");
+  </script>
 </html>
