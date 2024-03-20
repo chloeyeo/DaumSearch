@@ -73,8 +73,8 @@
         event.preventDefault();
         inputQuery = $(".search-form").find("input[name=query]").val().trim();
         if (inputQuery) {
-          const response = await axios.get(url, getParams(inputQuery));
-          onSuccess(response, inputQuery);
+          const response = await axios.get(url, getParams());
+          onSuccess(response);
         } else {
           $(".input").focus();
         }
@@ -83,7 +83,7 @@
       }
     }
 
-    function getParams(inputQuery) {
+    function getParams() {
       return {
         params: { query: inputQuery, size: itemsPerPage, page: currentPage },
         headers: {
@@ -91,7 +91,7 @@
         },
       };
     }
-    function setPager(totalRecords, inputQuery) {
+    function setPager(totalRecords) {
       let pagerCount = 5; // number of page indicators shown per page/group
       // kakao api only shows up til 50 pages even when actual no. of pages is larger
       let numberOfPages = Math.min(50, Math.ceil(totalRecords / itemsPerPage));
@@ -104,7 +104,7 @@
 
       let txt = `<li class="page-item ${
         startPage == 1 ? "disabled" : ""
-      }" onclick=onPageClick(${startPage - 1},inputQuery)>
+      }" onclick=onPageClick(${startPage - 1})>
             <span class="page-link"
               ><i class="fa-solid fa-arrow-left"></i
             ></span>
@@ -112,32 +112,32 @@
       for (let i = startPage; i <= endPage; i++) {
         txt += `<li class="page-item ${
           currentPage == i ? "active" : ""
-        }" onclick=onPageClick(${i},inputQuery)><span class="page-link">${i}</span></li>`;
+        }" onclick=onPageClick(${i})><span class="page-link">${i}</span></li>`;
       }
       txt += `<li class="page-item ${
         endPage == numberOfPages ? "disabled" : ""
-      }" onclick=onPageClick(${endPage + 1},inputQuery)>
+      }" onclick=onPageClick(${endPage + 1})>
             <span class="page-link"
               ><i class="fa-solid fa-arrow-right"></i
             ></span>
           </li>`;
       $(".pagination").html(txt);
     }
-    function onPageClick(pageNum, inputQuery) {
+    function onPageClick(pageNum) {
       currentPage = Number(pageNum);
       axios
-        .get(url, getParams(inputQuery))
+        .get(url, getParams())
         .then(onSuccess)
         .catch(function (error) {
           console.error(error.message);
         });
     }
 
-    function onSuccess(response, inputQuery) {
+    function onSuccess(response) {
       let data = response.data.documents;
       //   console.log(data);
 
-      setPager(response.data.meta.pageable_count, inputQuery); // pageable count in kakao api is equal to total items/docs/records
+      setPager(response.data.meta.pageable_count); // pageable count in kakao api is equal to total items/docs/records
 
       let text = ``;
       for (item of data) {
